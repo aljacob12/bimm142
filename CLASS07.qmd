@@ -1,0 +1,193 @@
+---
+title: "machine L"
+author: "Alen J"
+format: html
+---
+In the class we will explore clustering and dimensional reduction methods.
+
+## K-means
+
+```{r}
+hist(rnorm(30, -3))
+
+```
+Quick plot of X to see the 2 griups at -3, +3 and +3, _3 
+```{r}
+tmp<- c(rnorm (30,-3),rnorm(30, +3 ))
+x <- cbind(x=tmp, y=rev(tmp))
+plot(x) 
+```
+
+
+
+
+Use the 'kmeans()' function setting k to 2 and nstart=20 
+```{r}
+kmeans(x, center =2, nstart =20)
+```
+## To list an object do km then $:km$
+```{r}
+km <- kmeans(x, centers = 2, nstart = 20)
+```
+
+1. How many points are in each cluster?
+```{r}
+km$size
+```
+
+
+2. What 'components' of your results objects details
+-cluster assigment/membership?
+-cluster center
+```{r}
+km$cluster
+km$center
+```
+
+```{r}
+plot(x, col=2) 
+```
+```{r}
+plot(x, col=c("red","blue"))
+```
+```{r}
+plot(x, col=km$cluster)
+points(km$centers, col="blue", pch=15,)
+```
+playing with kmeans and ask for the different number of clusters
+```{r}
+km <- kmeans(x, centers = 4, nstart = 20)
+plot(x, col=km$cluster)
+points(km$centers, col="blue", pch=15)
+```
+
+
+
+## Hierarchical Clustering
+This clustering methods has the advantage over k-means because it reveals  the something of the true grouping in your data 
+-hclust() want (d) the distance matrix can give any time of distance
+-the 'hclust()' functions wants a distance matrix as input
+- there is a plot method for hclust results:
+```{r}
+d<- dist(x)
+hc<-hclust(d)
+hc
+```
+```{r}
+plot(hc)
+abline(h=10, col="red")
+```
+
+To get my cluster membership vector I need to "cut my tree into branches with all the members of a given cluster residing on the same cut branch. The function to do this called 'cutree()'
+
+```{r}
+grps <- cutree(hc, h=10)
+grps
+```
+
+
+It is often helpful to use  the 'k=' argument to cutree rather than the 'h=' height of cutting with 'cutree()'. This will cut the tree to yield the number of cluster you wnat  
+```{r}
+cutree(hc,k=4)
+```
+
+
+Graph using 'cutree':
+```{r}
+plot(x, col=grps)
+points(grps, col="green", pch=5)
+```
+
+
+
+
+
+## PCA of UK food data
+
+```{r}
+url <- "https://tinyurl.com/UK-foods"
+x <- read.csv(url)
+```
+
+#How many rows and columns are in your new data frame named x? What R functions could you use to answer this questions?
+```{r}
+dim(x)
+```
+
+After viewing the data, we have determined that there is an extra column added to the data set. In order to fix this issue we do minus indexing 
+
+```{r}
+x <- read.csv(url, row.names=1)
+head(x)
+```
+
+check again if the minus indexing worked:
+```{r}
+dim(x)
+```
+
+#Q2. Which approach to solving the ‘row-names problem’ mentioned above do you prefer and why? Is one approach more robust than another under certain circumstances?
+If you run x <- x[,-1] multiple times then the columns will be removed multiple times and it will remove data points needed for the project so x <- read.csv(url, row.names=1)
+head(x) is the better solution
+
+
+```{r}
+barplot(as.matrix(x), beside=T, col=rainbow(nrow(x)))
+
+```
+#Q3: Changing what optional argument in the above barplot() function results in the following plot?
+If you change beside= F then the bar plot will be stacked
+
+```{r}
+barplot(as.matrix(x), beside=F, col=rainbow(nrow(x)))
+
+```
+
+#Q5: Generating all pairwise plots may help somewhat. Can you make sense of the following code and resulting figure? What does it mean if a given point lies on the diagonal for a given plot?
+```{r}
+barplot(as.matrix(x), beside=F, col=rainbow(nrow(x)))
+pairs(x, col=rainbow(10), pch=16)
+```
+Yes, The graphs are comparing the eating habit of 2 countries if thwrw are points on the diagonal line that means that the 2 countries are eating the amount of food.
+
+#Q6. What is the main differences between N. Ireland and the other countries of the UK in terms of this data-set?
+The main difference between these 2 countries would be that these countries do not eat the same types of food in the same quantities
+
+# Use the prcomp() PCA function 
+```{r}
+pca <- prcomp(t(x)) 
+summary(pca)
+
+```
+#Q7. Complete the code below to generate a plot of PC1 vs PC2. The second line adds text labels over the data points.
+
+# A "PCA plot" Plot PC1 vs PC2
+```{r}
+pca$x
+```
+
+```{r}
+plot(pca$x[,1],pca$x[,2], col=c("orange","red","blue","darkgreen"),pch=15)
+```
+
+```{r}
+v <- round( pca$sdev^2/sum(pca$sdev^2) * 100 )
+v
+```
+
+
+```{r}
+z <- summary(pca)
+z$importance
+```
+
+```{r}
+barplot(v, xlab="Principal Component", ylab="Percent Variation")
+```
+
+##Digging deeper (variable loadings)
+```{r}
+par(mar=c(10, 3, 0.35, 0))
+barplot( pca$rotation[,1], las=2 )
+```
+
